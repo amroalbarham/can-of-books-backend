@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
 const PORT = process.env.PORT;
 
@@ -91,23 +92,59 @@ app.get(`/books`, bookshandler);
 
 function bookshandler(req, res) {
     let name = req.query.name;
-    // let bad='';
-    // try {
 
-        myUser.find({ email: name }, function (error, ownerData) {
-            if (error) {
+    myUser.find({ email: name }, function (error, ownerData) {
+        if (error) {
             console.log(error);
             res.stauts(500).send('please write correct E-mail')
-            } else {
+        } else {
             res.send(ownerData[0])
-            // }
-            // } catch  {
+
+        }
+    })
+}
+
+app.post('/addBooks', addBooksHandler);
+
+function addBooksHandler(req, res) {
+
+    const { name, description, img, status, email } = req.body;
+    console.log(name);
+
+    myUser.find({ email: email }, (error, userData) => {
+        if (error) {
+            res.send('did not work')
+        } else {
+            userData[0].books.push({
+                name: name,
+                description: description,
+                img: img,
+                status: status,
+            })
+            userData[0].save();
+            res.send(userData[0])
+        }
+    })
+}
+
+app.delete('/deleteBook/:index', deleteBooksHandler);
+
+function deleteBooksHandler(req, res) {
+    const { email } = req.query;
+
+    const index = Number(req.params.index)
+
+    myUser.find({ email: email }, (error, userData) => {
+        const newBookArr = userData[0].books.filter((book, idx) => {
+            if (idx !== index) {
+                return book;
             }
         })
-    }
-        // res.stauts(500).send('please write correct E-mail');
-
-// }
+        userData[0].books = newBookArr;
+        userData[0].save();
+        res.send(userData[0]);
+    })
+}
 
 
 
