@@ -10,8 +10,9 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT;
-
-mongoose.connect('mongodb://localhost:27017/books',
+// process.env.MONGODB_URI
+//'mongodb://localhost:27017/books'
+mongoose.connect(process.env.MONGODB_URI,
     { useNewUrlParser: true, useUnifiedTopology: true });
 
 
@@ -146,6 +147,24 @@ function deleteBooksHandler(req, res) {
     })
 }
 
+
+app.put('/editBook/:index',updateBookshandler);
+
+function updateBookshandler(req,res){
+    const{bookName,description,imgUrl,status,email}=req.body;
+    const index=Number(req.params.index);
+
+    myUser.findOne({email:email},(errors,userData)=>{
+        userData.books.splice(index,1,{
+            name:bookName,
+            description:description,
+            img:imgUrl,
+            status:status,
+        })
+        userData.save();
+        res.send(userData);
+    })
+}
 
 
 app.listen(PORT, () => {
